@@ -125,6 +125,10 @@ class InvitationKey(models.Model):
         
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
 
+
+class InvitationRequest(models.Model):
+    email = models.EmailField()
+
         
 class InvitationUser(models.Model):
     inviter = models.ForeignKey(User, unique=True)

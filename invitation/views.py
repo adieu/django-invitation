@@ -3,13 +3,14 @@ from django.views.generic.simple import direct_to_template
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.views.generic import CreateView
 
 from registration.views import register as registration_register
 from registration.forms import RegistrationForm
 from registration.backends import default as registration_backend
 
-from invitation.models import InvitationKey
-from invitation.forms import InvitationKeyForm
+from invitation.models import InvitationKey, InvitationRequest
+from invitation.forms import InvitationKeyForm, InvitationRequestForm
 from invitation.backends import InvitationBackend
 
 is_key_valid = InvitationKey.objects.is_key_valid
@@ -76,3 +77,14 @@ def invite(request, success_url=None,
         })
     return direct_to_template(request, template_name, extra_context)
 invite = login_required(invite)
+
+
+class RequestInvitationView(CreateView):
+    model = InvitationRequest
+    form_class = InvitationRequestForm
+    template_name = 'invitation/invitation_request_form.html'
+
+    def get_success_url(self):
+        return reverse('invitation_request_complete')
+
+invite_request = RequestInvitationView.as_view()
