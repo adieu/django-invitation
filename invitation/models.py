@@ -18,6 +18,14 @@ class InvitationKeyManager(models.Manager):
         """
         Return InvitationKey, or None if it doesn't (or shouldn't) exist.
         """
+        try:
+            code = InvitationCode.objects.get(code=invitation_key)
+            if self.filter(key=invitation_key).count() < code.redeem_limit:
+                key = self.model(key=invitation_key, from_user=code.from_user)
+                return key
+        except InvitationCode.DoesNotExist:
+            pass
+
         # Don't bother hitting database if invitation_key doesn't match pattern.
         if not SHA1_RE.search(invitation_key):
             return None
@@ -65,12 +73,9 @@ class InvitationKeyManager(models.Manager):
 
 class InvitationKey(models.Model):
     key = models.CharField(_('invitation key'), max_length=40)
-    date_invited = models.DateTimeField(_('date invited'), 
-                                        default=datetime.datetime.now)
-    from_user = models.ForeignKey(User, 
-                                  related_name='invitations_sent')
-    registrant = models.ForeignKey(User, null=True, blank=True, 
-                                  related_name='invitations_used')
+    date_invited = models.DateTimeField(_('date invited'), default=datetime.datetime.now)
+    from_user = models.ForeignKey(User, related_name='invitations_sent')
+    registrant = models.ForeignKey(User, null=True, blank=True, related_name='invitations_used')
     
     objects = InvitationKeyManager()
     
@@ -126,8 +131,21 @@ class InvitationKey(models.Model):
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
 
 
+class InvitationCode(models.Model):
+    code = models.CharField(_('invitation code'), max_length=40)
+    date_created = models.DateTimeField(_('date created'), default=datetime.datetime.now)
+    from_user = models.ForeignKey(User, related_name='invitation_code_set')
+    redeem_limit = models.IntegerField()
+
+    def __unicode__(self):
+        return u"Invitation code %s from %s" % (self.code, self.from_user.username)
+
+
 class InvitationRequest(models.Model):
     email = models.EmailField()
+
+    def __unicode__(self):
+        return u"InvitationRequest from %s" % self.email
 
         
 class InvitationUser(models.Model):
