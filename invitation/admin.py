@@ -17,7 +17,7 @@ def invite_user(modeladmin, request, queryset):
         invitation_request.invited = True
         invitation_request.save()
 
-invite_user.short_description = "Invite this user"
+invite_user.short_description = "Invite selected invitation requests"
 
 
 class InvitationRequestAdmin(admin.ModelAdmin):
