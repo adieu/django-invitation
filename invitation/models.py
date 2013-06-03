@@ -143,6 +143,7 @@ class InvitationCode(models.Model):
 
 class InvitationRequest(models.Model):
     email = models.EmailField()
+    invited = models.BooleanField(default=False)
 
     def __unicode__(self):
         return u"InvitationRequest from %s" % self.email
